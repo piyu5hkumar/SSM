@@ -1,1 +1,1 @@
-from .ssmuser import *
+from .user_and_profile import *

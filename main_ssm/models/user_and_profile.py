@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from ..manager import CustomUserManager
+from django.db.models.signals import post_save
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -24,8 +25,19 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
+    @staticmethod
+    def post_save(sender, instance, created, *args, **kwargs):
+        if not created:
+            return
+        if not instance.is_staff and not instance.is_superuser:
+            instance.set_password(instance.password)
+            instance.save()
+
     def __str__(self):
         return self.phone_number
+
+
+post_save.connect(User.post_save, sender=User)
 
 
 class UserProfile(models.Model):

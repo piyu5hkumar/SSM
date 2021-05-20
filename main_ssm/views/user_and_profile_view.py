@@ -107,9 +107,9 @@ class UserProfileInfo(APIView):
         serializer = UserProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
-        signed_up_details = serializer.data
-        signed_up_details["phone_number"] = request.user.phone_number
+        user_profile_details = serializer.data
+        user_profile_details["phone_number"] = request.user.phone_number
 
         resp.add_data_field(message="Profile successfully updated")
-        resp.add_data_field(signed_up_details=signed_up_details)
+        resp.add_data_field(user_profile=user_profile_details)
         return Response(resp.get_response(), status=status.HTTP_200_OK)

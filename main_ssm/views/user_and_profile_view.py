@@ -1,4 +1,6 @@
 # django imports
+from main_ssm.models.user_and_profile_model import UserProfile
+from main_ssm.serializers import user_and_profile_serializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import check_password
 
@@ -6,15 +8,12 @@ from django.contrib.auth.hashers import check_password
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 
 # additional imports
 from ..models import User
-from ..serializers import UserSerializer, LonginUserSerializer
-from ..permissions import checkCustomPermission, LoginCheckPermission
+from ..serializers import UserSerializer, LonginUserSerializer, UserProfileSerializer
 from ..components import CustomResponse
 
 
@@ -73,4 +72,30 @@ class LoginUser(APIView):
         else:
             resp.add_error_field(message="User doesn't exists")
 
+        return Response(resp.get_response(), status=status.HTTP_200_OK)
+
+
+class UserProfileInfo(APIView):
+    def get(self, request):
+        resp = CustomResponse()
+        current_user = request.user
+        serializer = UserProfileSerializer(current_user.user_profile)
+        user_profile = serializer.data
+        user_profile["phone_number"] = request.user.phone_number
+
+        resp.add_data_field(message="UserProfile successfully fetched")
+        resp.add_data_field(user_profile=user_profile)
+
+        return Response(resp.get_response(), status=status.HTTP_200_OK)
+
+    def post(self, request):
+        resp = CustomResponse()
+        serializer = UserProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        signed_up_details = serializer.data
+        signed_up_details["phone_number"] = request.user.phone_number
+
+        resp.add_data_field(message="Profile successfully updated")
+        resp.add_data_field(signed_up_details=signed_up_details)
         return Response(resp.get_response(), status=status.HTTP_200_OK)

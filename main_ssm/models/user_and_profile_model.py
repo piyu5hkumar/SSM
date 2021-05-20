@@ -112,3 +112,11 @@ def on_user_logged_out(sender, request, **kwargs):
     user_to_logout.last_logout = timezone.now()
     user_to_logout.save(update_fields=["last_logout"])
     Token.objects.filter(user=user_to_logout).delete()
+
+
+@receiver(pre_save, sender=UserProfile)
+def capitalize_first_letter(sender, instance, *args, **kwargs):
+    instance.username = instance.username.lower()
+    instance.first_name = instance.first_name.title()
+    instance.middle_name = instance.middle_name.title()
+    instance.last_name = instance.last_name.title()

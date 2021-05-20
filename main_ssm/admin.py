@@ -3,19 +3,20 @@ from .models import *
 
 # Register your models here.
 
+# @admin.register(User)
+# class UserProfile(admin.ModelAdmin):
+#     list_display = [field.name for field in User._meta.fields]
 
-class SsmUserAdmin(admin.ModelAdmin):
-    list_display = [
-        "phone_number",
-        "date_joined",
-        "last_login",
-        "last_logout",
-    ]
+# @admin.register(UserProfile)
+# class UserProfileAdmin(admin.ModelAdmin):
+#     list_display =  [field.name for field in UserProfile._meta.fields]
 
 
-admin.site.register(User, SsmUserAdmin)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ["phone_number", "is_superuser", "is_staff", "is_active"]
 
 
 @admin.register(UserProfile)
-class SSmUserProfileAdmin(admin.ModelAdmin):
-    list_display = ["username", "first_name", "middle_name", "last_name", "d_o_b"]
+class UserAdmin(admin.ModelAdmin):
+    list_display = ["user","username",'first_name','middle_name','last_name','d_o_b']

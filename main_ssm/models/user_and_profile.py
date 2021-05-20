@@ -1,9 +1,20 @@
+# django imports
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db.models.signals import pre_save
+from django.conf import settings
+from django.contrib.auth import user_logged_in, user_logged_out
+from django.dispatch import receiver
+from django.db import transaction
+
+# rest_framework imports
+from rest_framework.authtoken.models import Token
+
+# additional imports
+from datetime import time
 from ..manager import CustomUserManager
-from django.db.models.signals import post_save
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -25,25 +36,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    @staticmethod
-    def post_save(sender, instance, created, *args, **kwargs):
-        if not created:
-            return
-        if not instance.is_staff and not instance.is_superuser:
-            instance.set_password(instance.password)
-            instance.save()
-
     def __str__(self):
         return self.phone_number
 
 
-post_save.connect(User.post_save, sender=User)
-
-
 class UserProfile(models.Model):
-    ssmuser = models.OneToOneField(
+    user = models.OneToOneField(
         User,
-        related_name="ssm_user_profile",
+        related_name="user_profile",
         on_delete=models.CASCADE,
         primary_key=True,
     )
@@ -67,3 +67,39 @@ class UserProfile(models.Model):
         name = self.username
         name = self.ssmuser.phone_number if name == "" else name
         return name
+
+
+################################################## signals ##################################################
+
+
+@receiver(pre_save, sender=User)
+def hash_password(sender, instance, *args, **kwargs):
+    # password will be only hashed in two condition
+    # 1. is_staff and is_superuser are false, because if it is then the create_superuser->create_user is already handling it.
+    # 2. if we are updating some fields, because we don't want to update the password again.
+
+    if (
+        not instance.is_staff
+        and not instance.is_superuser
+        and not kwargs["update_fields"]
+    ):
+        instance.set_password(instance.password)
+
+
+@transaction.atomic
+@receiver(user_logged_in)
+def on_user_logged_in(sender, request, **kwargs):
+    user_to_login = kwargs.get("user")
+    Token.objects.filter(user=user_to_login).delete()
+    Token.objects.create(user=user_to_login)
+
+    # it will automatically calls kwargs.get("user").save(update_fields=["last_login"])
+
+
+@transaction.atomic
+@receiver(user_logged_out)
+def on_user_logged_out(sender, request, **kwargs):
+    user_to_logout = kwargs.get("user")
+    user_to_logout.last_logout = timezone.now()
+    user_to_logout.save(update_fields=["last_logout"])
+    Token.objects.filter(user=user_to_logout).delete()

@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.conf import settings
 from django.contrib.auth import user_logged_in, user_logged_out
 from django.dispatch import receiver
@@ -35,6 +35,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+
+    def get_token(self):
+        return Token.objects.get(user=self)
 
     def __str__(self):
         return self.phone_number
@@ -84,6 +87,12 @@ def hash_password(sender, instance, *args, **kwargs):
         and not kwargs["update_fields"]
     ):
         instance.set_password(instance.password)
+
+
+@receiver(post_save, sender=User)
+def create_token(sender, instance, created, *args, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 
 @transaction.atomic

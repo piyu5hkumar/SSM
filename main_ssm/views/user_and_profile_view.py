@@ -1,4 +1,5 @@
 # django imports
+from main_ssm.components import custom_response
 from main_ssm.models.user_and_profile_model import UserProfile
 from main_ssm.serializers import user_and_profile_serializer
 from django.contrib.auth import login, logout
@@ -71,6 +72,19 @@ class LoginUser(APIView):
                 resp.add_error_field(message="Please enter correct Password")
         else:
             resp.add_error_field(message="User doesn't exists")
+
+        return Response(resp.get_response(), status=status.HTTP_200_OK)
+
+
+class LogoutUser(APIView):
+    def post(self, request):
+        resp = CustomResponse()
+        current_user = request.user
+        resp.add_data_field(message=f"{current_user} is successfully Logged out")
+        try:
+            logout(request)
+        except:
+            resp.add_error_field(message=f"Unable to logout {current_user}")
 
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 

@@ -81,10 +81,8 @@ def hash_password(sender, instance, *args, **kwargs):
     # 1. is_staff and is_superuser are false, because if it is then the create_superuser->create_user is already handling it.
     # 2. if we are updating some fields, because we don't want to update the password again.
 
-    if (
-        not instance.is_staff
-        and not instance.is_superuser
-        and not kwargs["update_fields"]
+    if (not instance.is_staff and not instance.is_superuser) or (
+        "password" in kwargs["update_fields"]
     ):
         instance.set_password(instance.password)
 

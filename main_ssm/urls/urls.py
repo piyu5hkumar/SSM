@@ -11,6 +11,8 @@ from ..views import (
     LogoutUser,
     CheckPassword,
     ResetPassword,
+    ForgotPassword,
+    ForgotPasswordPage
 )
 
 urlpatterns = [
@@ -23,4 +25,6 @@ urlpatterns = [
     # password management
     path("check_password", CheckPassword.as_view()),
     path("reset_password", ResetPassword.as_view()),
+    path("forgot_password", ForgotPassword.as_view()),
+    path("reset_password/<str:jwt_token>",ForgotPasswordPage.as_view() )
 ]

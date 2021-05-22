@@ -1,7 +1,5 @@
 # django imports
-from main_ssm.components import custom_response
 from main_ssm.models.user_and_profile_model import UserProfile
-from main_ssm.serializers import user_and_profile_serializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import check_password
 

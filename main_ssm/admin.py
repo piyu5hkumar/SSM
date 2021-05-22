@@ -14,7 +14,7 @@ from .models import *
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["phone_number", "is_superuser", "is_staff", "is_active"]
+    list_display = ["uid", "phone_number", "email", "is_superuser", "is_staff", "is_active"]
 
 
 @admin.register(UserProfile)

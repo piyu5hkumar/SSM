@@ -15,16 +15,17 @@ from rest_framework.authtoken.models import Token
 # additional imports
 from datetime import time
 from ..manager import CustomUserManager
+import uuid
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    uid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     phone_number = models.CharField(
-        primary_key=True, validators=[MinLengthValidator(10)], max_length=10
+        unique=True, validators=[MinLengthValidator(10)], max_length=10
     )
-    password = models.CharField(
-        null=False, blank=False, validators=[MinLengthValidator(8)], max_length=225
-    )
-    date_joined = models.DateTimeField(null=False, blank=False, default=timezone.now)
+    email = models.EmailField(unique=True, null=True)
+    password = models.CharField(validators=[MinLengthValidator(8)], max_length=225)
+    date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
     last_logout = models.DateTimeField(null=True, blank=True)
 
@@ -77,15 +78,10 @@ class UserProfile(models.Model):
 
 @receiver(pre_save, sender=User)
 def hash_password(sender, instance, *args, **kwargs):
-    # password will be only hashed in two condition
-    # 1. is_staff and is_superuser are false, because if it is then the create_superuser->create_user is already handling it.
-    # 2. if we are updating some fields, because we don't want to update the password again.
-
-    if (
-        not instance.is_staff
-        and not instance.is_superuser
-        and not kwargs["update_fields"]
-    ):
+    if kwargs["update_fields"]:
+        if "password" in kwargs["update_fields"]:
+            instance.set_password(instance.password)
+    elif not instance.is_staff and not instance.is_superuser:
         instance.set_password(instance.password)
 
 

@@ -1,6 +1,4 @@
 # rest_framework imports
-from django import forms
-from django.core.checks import messages
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,14 +6,12 @@ from rest_framework import status
 
 # django imports
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.views import View
-from django.views.generic.edit import FormView
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import render
 from django.conf import settings
 
 # additional imports
-from ..components import CustomResponse
+from ..components import SSMResponse, SendGrid, ForgotPasswordTokenGenerator
 from ..serializers import (
     PasswordSerializer,
     ResetPasswordSerializer,
@@ -26,11 +22,14 @@ from ..forms import ResetPasswordForm
 import jwt
 import time
 import datetime
+import os
+
+JWT_SIGNATURE = os.environ.get("JWT_SIGNATURE", "")
 
 
 class CheckPassword(APIView):
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         serializer = PasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         password = serializer.validated_data.get("password", "")
@@ -43,7 +42,7 @@ class CheckPassword(APIView):
 
 class ResetPassword(APIView):
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         serializer = ResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         old_password = serializer.validated_data.get("old_password", "")
@@ -57,34 +56,11 @@ class ResetPassword(APIView):
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
 
-class ForgotPasswordTokenGenerator(PasswordResetTokenGenerator):
-    """
-    We will call make_token of PasswordRestTokenGenerator,
-    which uses _make_token_with_timestamp(self, user, timestamp, legacy=False),
-    which further uses __make_hash_value(self, user, timestamp)
-    So we are overriding __make_hash_value(self, user, timestamp)
-    it is using the user.password salt and user.last_login timestamp.
-
-    Both will change, and the link will no longer be valid.
-    Also the self.secret(SECRET_KEY) is used in the salted_hmac function(inside _make_token_with_timestamp(self, user, timestamp, legacy=False)).
-    So unless your SECRET_KEY was compromised, it would be impossible to reproduce the hash value.
-
-    """
-
-    def _make_hash_value(self, user, timestamp):
-        login_timestamp = (
-            ""
-            if user.last_login is None
-            else user.last_login.replace(microsecond=0, tzinfo=None)
-        )
-        return f"{user.pk}{user.password}{timestamp}{user.email}"
-
-
 class ForgotPassword(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
 
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -106,10 +82,22 @@ class ForgotPassword(APIView):
                     "password_reset_token": password_reset_token,
                     "timestamp": time.time(),
                 }
-                jwt_token = jwt.encode(payload, "piyush")
+                jwt_token = jwt.encode(payload, JWT_SIGNATURE)
                 forgot_password_url = f"{base_url}/{jwt_token}"
-                resp.add_data_field(message="Forgot password link send")
-                resp.add_data_field(url=forgot_password_url)
+
+                sendgrid_obj = SendGrid()
+                is_success, sendgrid_response = sendgrid_obj.send_email(
+                    to_email=email, verification_link=forgot_password_url
+                )
+
+                if is_success:
+                    resp.add_data_field(
+                        message="Forgot password link successfully sent"
+                    )
+                    resp.add_additional_info_field(sendgrid_response=sendgrid_response)
+                else:
+                    resp.add_error_field(message="Unable to send message")
+                    resp.add_additional_info_field(sendgrid_response=sendgrid_response)
             else:
                 resp.add_error_field(message="User doesn't exists")
         else:
@@ -130,9 +118,10 @@ class ForgotPasswordPage(View):
     form = ResetPasswordForm()
 
     def is_token_valid(self, jwt_token):
+
         try:
             # This will also raise an exception on unsuccessful decode
-            decoded_token = jwt.decode(jwt_token, "piyush", algorithms=["HS256"])
+            decoded_token = jwt.decode(jwt_token, JWT_SIGNATURE, algorithms=["HS256"])
 
             # checking expiration of the jwt_token
             timestamp = decoded_token["timestamp"]

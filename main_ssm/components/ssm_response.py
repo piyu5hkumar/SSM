@@ -1,4 +1,4 @@
-class CustomResponse:
+class SSMResponse:
     def __init__(self):
         self.data = None
         self.error = None

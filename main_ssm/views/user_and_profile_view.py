@@ -13,7 +13,7 @@ from rest_framework.authtoken.models import Token
 # additional imports
 from ..models import User
 from ..serializers import UserSerializer, LonginUserSerializer, UserProfileSerializer
-from ..components import CustomResponse
+from ..components import SSMResponse
 
 
 class Test(APIView):
@@ -29,7 +29,7 @@ class SignUp(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         singed_up_user = serializer.save()
@@ -45,7 +45,7 @@ class LoginUser(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         serializer = LonginUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -76,7 +76,7 @@ class LoginUser(APIView):
 
 class LogoutUser(APIView):
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         current_user = request.user
         resp.add_data_field(message=f"{current_user} is successfully Logged out")
         try:
@@ -89,7 +89,7 @@ class LogoutUser(APIView):
 
 class UserProfileInfo(APIView):
     def get(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         current_user = request.user
         serializer = UserProfileSerializer(current_user.user_profile)
         user_profile = serializer.data
@@ -101,7 +101,7 @@ class UserProfileInfo(APIView):
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
     def post(self, request):
-        resp = CustomResponse()
+        resp = SSMResponse()
         serializer = UserProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)

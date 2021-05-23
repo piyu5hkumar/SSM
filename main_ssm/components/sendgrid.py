@@ -14,10 +14,12 @@ import os
 
 
 class SendGrid:
-    sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
-    sendgrid_template_id = os.environ.get("SENDGRID_TEMPLATE_ID")
-    sendgrid_sender_email = os.environ.get("SENDGRID_SENDER_EMAIL")
-    use_sendgrid = os.environ.get("SENDGRID_USE")
+    SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+    SENDGRID_TEMPLATE_ID = os.environ.get("SENDGRID_TEMPLATE_ID", "")
+    SENDGRID_SENDER_EMAIL = os.environ.get("SENDGRID_SENDER_EMAIL", "")
+    SENDGRID_USE = (
+        True if os.environ.get("SENDGRID_USE", "False").title() == "True" else False
+    )
 
     def __init__(self) -> None:
 
@@ -26,25 +28,25 @@ class SendGrid:
         In future a logger will also be initialized here.
         """
 
-        if self.use_sendgrid:
-            self.sendgrid_client = SendGridAPIClient(self.sendgrid_api_key)
+        if self.SENDGRID_USE:
+            self.sendgrid_client = SendGridAPIClient(self.SENDGRID_API_KEY)
 
-    def get_mail_object(self, to_email: str, verification_link: str) -> Mail:
+    def mail_object(self, to_email: str, verification_link: str) -> Mail:
 
         """
         This method will create a Mail object which will be sent by the email,
         Mail object consists of from_email, to_emails, subject, template_id and dynamic_template_data
         """
 
-        message = Mail(
-            from_email=self.sendgrid_sender_email,
+        mail = Mail(
+            from_email=self.SENDGRID_SENDER_EMAIL,
             to_emails=to_email,
             subject="SSM Forgot Password hero",
         )
-        message.template_id = self.sendgrid_template_id
-        message.dynamic_template_data = {"verification_link"}
+        mail.template_id = self.SENDGRID_TEMPLATE_ID
+        mail.dynamic_template_data = {"verification_link": verification_link}
 
-        return message
+        return mail
 
     def send_email(self, to_email: str, verification_link: str) -> Tuple[bool, str]:
 
@@ -53,9 +55,11 @@ class SendGrid:
         corresponding to success and success message or error and error message(in case of failure)
         """
 
+        if not self.SENDGRID_USE:
+            return True, "Mail was not sent because sendgrid use is set to false"
         try:
-            mail = self.get_mail_object(to_email, verification_link)
+            mail = self.mail_object(to_email, verification_link)
             sendgrid_response = self.sendgrid_client.send(mail)
             return True, str(sendgrid_response.headers)
         except Exception as e:
-            False, str(e)
+            return False, str(e)

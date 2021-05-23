@@ -11,9 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["password", "phone_number"]
 
 
-class LonginUserSerializer(UserSerializer):
+class LonginUserSerializer(serializers.ModelSerializer):
     class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields
         extra_kwargs = {"phone_number": {"validators": []}}
 
 

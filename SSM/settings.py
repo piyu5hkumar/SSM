@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "webapp",
     "main_ssm",
 ]
 
@@ -92,9 +93,9 @@ WSGI_APPLICATION = "SSM.wsgi.application"
 # }
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -137,6 +138,13 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+
+# Doing so will let the engine to check every folder of the apps.
+# It mimics exactly like like TEMPLATES DIRS i.e., it won't go to the project but to the apps only.
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 AUTH_USER_MODEL = "main_ssm.User"
 

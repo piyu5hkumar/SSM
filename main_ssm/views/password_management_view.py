@@ -165,7 +165,14 @@ class ForgotPasswordPage(View):
         confirm_new_password = request.POST.get("confirm_new_password", "")
 
         if new_password != confirm_new_password:
-            return render(request, "main_ssm/reset_password.html", {"form": self.form})
+            return render(
+                request,
+                "main_ssm/reset_password.html",
+                context={
+                    "form": self.form,
+                    "error": "Please enter same password in the both fields",
+                },
+            )
 
         user.password = new_password
         user.save(update_fields=["password"])

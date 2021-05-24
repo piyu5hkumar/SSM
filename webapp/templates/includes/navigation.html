@@ -1,0 +1,110 @@
+<style>
+    .app-name{
+        color: rgb(108,85,50);
+        margin-left: 10px;
+    }
+    .admin-name{
+        color: rgb(81,55,23);
+        border: 2px solid rgb(255,247,234);
+        font-weight: bolder;
+        font-size: medium;
+        padding: 0;
+    }
+</style>
+<nav class="pcoded-navbar">
+    <div class="navbar-wrapper">
+        <div class="navbar-brand header-logo">
+            <a class="b-brand">
+                <div class="b-bg">
+                    {% load static %}
+                    
+                    <img src="{% static 'assets/images/el_wallet_icon.png' %}">
+                </div>
+                <span class=" app-name">BETOLINE</span>
+
+            </a>
+        </div>
+
+
+        <span class="b-title admin-name" style="margin-left: 40px;">Hi, {{request.session.admin_name}} </span>
+        <div class="navbar-content scroll-div">
+            <ul class="nav pcoded-inner-navbar">
+
+                <li class="nav-item {%  if request.path == '/user_search' %}activated{% endif %}">
+                    <a href="{% url 'dashboard_user_search' %}" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-search"></i></span><span class="pcoded-mtext">User Search</span></a>
+                </li>
+
+                <li class="nav-item {%  if request.path == '/new_user_registration' %}activated{% endif %}">
+                    <a href="{% url 'dashboard_new_user_registration' %}" class="nav-link "><span class="pcoded-micon"><i
+                                class="feather icon-user"></i></span><span class="pcoded-mtext">New Users
+                            Registrations</span></a>
+                </li>
+
+                <li class="nav-item {%  if request.path == '/transaction_and_balance' %}activated{% endif %}">
+                    <a href="{% url 'dashboard_transaction_and_balance' %}" class="nav-link">
+                        <span class="pcoded-micon"><i class="feather icon-zap"></i>
+                        </span>
+                        <span class="pcoded-mtext">Transaction and Balance Reports</span>
+                    </a>
+                </li>
+
+
+                <li class="nav-item {%  if request.path == '/transaction_and_history' %}activated{% endif %}">
+                    <a href="{% url 'transaction_and_history' %}" class="nav-link">
+                        <span class="pcoded-micon"><i class="feather icon-clipboard"></i>
+                        </span>
+                        <span class="pcoded-mtext">User Transaction History</span>
+                    </a>
+                </li>
+
+
+                <li class="nav-item {%  if request.path == '/manage_faq' %}activated{% endif %}">
+                    <a href="{% url 'manage_faq' %}" class="nav-link">
+                        <span class="pcoded-micon"><i class="feather icon-help-circle"></i>
+                        </span>
+                        <span class="pcoded-mtext">Manage FAQs</span>
+                    </a>
+                </li>
+
+
+                <li class="nav-item {%  if request.path == '/change_password' %}activated{% endif %}">
+                    <a href="{% url 'dashboard_change_password' %}" class="nav-link">
+                        <span class="pcoded-micon"><i class="feather icon-lock"></i>
+                        </span>
+                        <span class="pcoded-mtext">Change Password</span>
+                    </a>
+                </li>
+
+
+                <li class="nav-item {%  if request.path == '/manage_queries' %}activated{% endif %}">
+                    <a href="{% url 'manage_queries' %}" class="nav-link">
+                        <span class="pcoded-micon"><i class="feather icon-info"></i>
+                        </span>
+                        <span class="pcoded-mtext">Manage Queries</span>
+                    </a>
+                </li>
+                
+
+                <li class="nav-item {%  if request.path == '/account_settings' %}activated{% endif %}">
+                    <a href="{% url 'dashboard_settings' %}" class="nav-link">
+                        <span class="pcoded-micon">
+                            <i class="feather icon-settings"></i>
+                        </span>
+                        <span class="pcoded-mtext">Account Settings</span>
+                    </a>
+                </li>
+                
+
+                <li class="nav-item">
+                    <a href="{% url 'dashboard_logout' %}" class="nav-link">
+                        <span class="pcoded-micon">
+                            <i class="feather icon-power"></i>
+                        </span>
+                        <span class="pcoded-mtext">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

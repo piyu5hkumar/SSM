@@ -1,12 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Invalid page</h1>
-</body>
-</html>
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+
+{% block stylesheets %}
+<style>
+    .content-body {
+        background-color: rgb(255, 146, 146);
+    }
+
+    .jumbotron {
+        background-color: transparent;
+        color: black;
+    }
+
+    .btn {
+        background-color: whitesmoke;
+        border-color: red;
+        color: rgb(255, 146, 146);
+        font-weight: bold;
+    }
+    .btn:hover{
+        background-color: red;
+        border-color: whitesmoke;
+        color: whitesmoke;
+        
+    }
+</style>
+{% endblock stylesheets %}
+
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4">400 Bad Request ;(</h1>
+        <p class="lead">The server can not or will not process the request due to an apparent client error</p>
+        <hr class="my-4">
+        <p>The request you sent to the website server, was somehow
+            incorrect or corrupted and the server couldn't understand it.</p>
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Back to Home</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

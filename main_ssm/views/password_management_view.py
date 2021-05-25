@@ -101,7 +101,6 @@ class ForgotPassword(APIView):
             else:
                 resp.add_error_field(message="User doesn't exists")
         else:
-            pass
             phone_number = serializer.validated_data.get("phone_number", "")
             user_qs = User.objects.filter(phone_number=phone_number)
 

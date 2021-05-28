@@ -1,4 +1,5 @@
 # rest_framework imports
+from main_ssm.components import twilio
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,13 +12,18 @@ from django.shortcuts import render
 from django.conf import settings
 
 # additional imports
-from ..components import SSMResponse, SendGrid, ForgotPasswordTokenGenerator
+from ..components import (
+    SSMResponse,
+    SendGrid,
+    ForgotPasswordTokenGenerator,
+    Twilio
+)
 from ..serializers import (
     PasswordSerializer,
     ResetPasswordSerializer,
     ForgotPasswordSerializer,
 )
-from ..models import User
+from ..models import User, Otp
 from ..forms import ResetPasswordForm
 import jwt
 import time
@@ -62,7 +68,7 @@ class ForgotPassword(APIView):
     def get(self, request):
         resp = SSMResponse()
 
-        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer = ForgotPasswordSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         is_email = serializer.validated_data.get("is_email", True)
 
@@ -105,8 +111,13 @@ class ForgotPassword(APIView):
             user_qs = User.objects.filter(phone_number=phone_number)
 
             if user_qs.exists():
-                user = user_qs.first()
-                user_uid = user.uid
+                twilio_object = Twilio()
+                resp.add_additional_info_field(twilio_use=twilio_object.TWILIO_USE)
+                is_success, message = twilio_object.send_otp(phone_number, Otp.Otp_types.FORGOT_PASSWORD, 6)
+                if is_success:
+                    resp.add_data_field(message=message)
+                else:
+                    resp.add_error_field(message=message)
             else:
                 resp.add_error_field(message="User doesn't exists")
 

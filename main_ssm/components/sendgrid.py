@@ -9,17 +9,15 @@ from sendgrid.helpers.mail import (
     Disposition,
     Content,
 )
-
+from django.conf import settings
 import os
 
 
 class SendGrid:
+    SENDGRID_USE = settings.SENDGRID_USE
     SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
     SENDGRID_TEMPLATE_ID = os.environ.get("SENDGRID_TEMPLATE_ID", "")
     SENDGRID_SENDER_EMAIL = os.environ.get("SENDGRID_SENDER_EMAIL", "")
-    SENDGRID_USE = (
-        True if os.environ.get("SENDGRID_USE", "False").title() == "True" else False
-    )
 
     def __init__(self) -> None:
 

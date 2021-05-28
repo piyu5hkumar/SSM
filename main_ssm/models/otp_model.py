@@ -1,3 +1,4 @@
+
 from re import T
 from typing import Tuple
 from django.core import validators
@@ -7,16 +8,32 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+import math
+import datetime
 
 
 class Otp(models.Model):
-    TWO_FACTOR = "two_factor"
-    PHONE_VERIFICATION = "phone_verification"
-    FORGOT_PASSWORD = "forgot_password"
-    PAYMENT = "payment"
+    class Otp_types(models.TextChoices):
+        '''
+        It extends TextChoices, this works for character like fields.
+        Here each class variable will act as a choice and has type enum.
 
-    OTP_TYPES = [TWO_FACTOR, PHONE_VERIFICATION, FORGOT_PASSWORD, PAYMENT]
-    OTP_TYPES_CHOICES = [(ot, ot) for ot in OTP_TYPES]
+        For integer there is models.IntegerChoices and likewise for other type of model fields(check docs).
+
+        Each class variable is of type enum, where the first value is the actual value to be set on the model, 
+        and the second value is the human readable label name(It has nothing to do with the DB)
+
+        1. To get all the choices just use Otp_types.choices and it will return a list of tuples of all the class variables
+
+        2. To get the first value just use Otp_types.PHONE_VERIFICATION and to get the second value of an enum
+        use Otp_types.PHONE_VERIFICATION.label
+        '''
+
+        # Don't get confuse, RHS are nothing but tuples
+        TWO_FACTOR = 'two_factor', 'Two Factor Authentication'
+        PHONE_VERIFICATION = 'phone_verification', 'Phone Number Verification'
+        FORGOT_PASSWORD = "forgot_password", "Forgot Password"
+        PAYMENT = "payment", "Payment Authentication"
 
     phone_number = models.CharField(validators=[MinLengthValidator(10)], max_length=10)
     otp_sent = models.CharField(max_length=4, validators=[MinLengthValidator(4)])
@@ -24,7 +41,7 @@ class Otp(models.Model):
     date_blocked = models.DateTimeField(null=True, blank=True)
 
     attempts = models.PositiveIntegerField(default=0)
-    otp_type = models.CharField(max_length=255, choices=OTP_TYPES_CHOICES)
+    otp_type = models.CharField(max_length=255, choices=Otp_types.choices)
     is_used = models.BooleanField(default=False)
     is_latest = models.BooleanField(default=True)
 
@@ -33,18 +50,25 @@ class Otp(models.Model):
             return False, None
 
         now = timezone.now()
-        unblock_time = self.date_blocked + settings.OTP_COOL_DOWN_TIME_SECONDS
+        unblock_time = self.date_blocked + timezone.timedelta(seconds=settings.OTP_COOL_DOWN_TIME_SECONDS)
 
         if unblock_time < now:
             return False, None
         else:
             unblock_time_remaining = unblock_time - now
-            unblock_time = unblock_time_remaining.time()
-            return True, unblock_time
+
+            unblock_time_hour, unblock_time_minute, unblock_time_second = (
+                math.ceil(float(dt)) for dt in str(unblock_time_remaining).split(':')
+            )
+
+            unblock_time_remaining_datetime_time = datetime.time(
+                unblock_time_hour, unblock_time_minute, unblock_time_second
+            )
+
+            return True, unblock_time_remaining_datetime_time
 
     @classmethod
     def is_applicable_for_otp(cls, phone_number, otp_type):
-
         """
 
         In this method we'll check the latest otp with the passed phone_number and otp_type,
@@ -59,16 +83,12 @@ class Otp(models.Model):
         message = None
 
         # Fetching latest otp with the passed phone_number and otp_type
-        otp_qs = cls.objects.filter(
-            phone_number=phone_number, otp_type=otp_type, is_latest=True
-        )
+        otp_qs = cls.objects.filter(phone_number=phone_number, otp_type=otp_type, is_latest=True)
         latest_otp = otp_qs.first()
-
         if latest_otp:
             is_blocked, cool_down_time = latest_otp.is_blocked_and_cool_down_time()
 
             if is_blocked:
-                print(cool_down_time)
                 is_applicable = False
                 message = "Max OTP limit({}) has reached, please wait for {} minute(s) and {} second(s)".format(
                     settings.OTP_FAILURE_ATTEMPTS,
@@ -77,9 +97,9 @@ class Otp(models.Model):
                 )
                 return is_applicable, message
 
-            is_applicable = True
-            message = "This user is applicable to send a new OTP"
-            return is_applicable, message
+        is_applicable = True
+        message = "This user is applicable to send a new OTP"
+        return is_applicable, message
 
     def is_expired(self):
         now = timezone.now()
@@ -139,13 +159,27 @@ class Otp(models.Model):
 
         return is_validated, message
 
+    def already_cool_down_passed(self):
+        '''
+
+        This method will tell, whether after a sent OTP, do we need cool down time,
+        but if already the cool down time elapsed after sending the otp, then no need for cool down,
+        even though it might be 3rd otp of a type.
+        If the time_delta > cool down time, then the new attempt will be the 1st attempt. 
+
+        '''
+        now = timezone.now()
+        time_delta = now - self.date_created
+        if time_delta > timezone.timedelta(seconds=settings.OTP_COOL_DOWN_TIME_SECONDS):
+            return True
+        else:
+            return False
 
 ################################################## signals ##################################################
 
 
 @receiver(pre_save, sender=Otp)
 def increasing_attempts(sender, instance, *args, **kwargs):
-
     """
 
     We will fetch the latest otp object having same otp type and phone number, by so we'll update the
@@ -167,7 +201,11 @@ def increasing_attempts(sender, instance, *args, **kwargs):
         latest_otp.is_latest = False
         latest_otp.save(update_fields=["is_latest"])
 
-        if latest_otp.is_used:
+        if latest_otp.is_used or latest_otp.already_cool_down_passed():
+            '''
+            If the latest otp was already used or enough time has passed then we'll assing the attempts of
+            new otp to be 1. 
+            '''
             instance.attempts = 1
         else:
             instance.attempts = latest_otp.attempts + 1

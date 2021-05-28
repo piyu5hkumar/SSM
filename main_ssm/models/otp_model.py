@@ -1,9 +1,6 @@
 
-from re import T
-from typing import Tuple
-from django.core import validators
 from django.db import models
-from django.core.validators import MinLengthValidator, MaxLengthValidator
+from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
@@ -13,7 +10,7 @@ import datetime
 
 
 class Otp(models.Model):
-    class Otp_types(models.TextChoices):
+    class OtpTypes(models.TextChoices):
         '''
         It extends TextChoices, this works for character like fields.
         Here each class variable will act as a choice and has type enum.
@@ -35,13 +32,18 @@ class Otp(models.Model):
         FORGOT_PASSWORD = "forgot_password", "Forgot Password"
         PAYMENT = "payment", "Payment Authentication"
 
-    phone_number = models.CharField(validators=[MinLengthValidator(10)], max_length=10)
-    otp_sent = models.CharField(max_length=4, validators=[MinLengthValidator(4)])
+    phone_number = models.CharField(max_length=10, validators=[MinLengthValidator(10)])
+
+    otp_sent = models.CharField(
+        max_length=settings.OTP_LENGTH,
+        validators=[MinLengthValidator(settings.OTP_LENGTH)]
+    )
+
     date_created = models.DateTimeField(default=timezone.now)
     date_blocked = models.DateTimeField(null=True, blank=True)
 
     attempts = models.PositiveIntegerField(default=0)
-    otp_type = models.CharField(max_length=255, choices=Otp_types.choices)
+    otp_type = models.CharField(max_length=255, choices=OtpTypes.choices)
     is_used = models.BooleanField(default=False)
     is_latest = models.BooleanField(default=True)
 
@@ -115,49 +117,40 @@ class Otp(models.Model):
     def validate_otp(cls, phone_number, otp_received, otp_type):
         is_validated = None
         message = None
+        # Fetching all the Otp same as passed phone_number, otp_received, otp_type and
+        # we will check for the is_latest, because we don't want old otp to be able to validate
 
-        # Fetching all the Otp same as passed phone_number, otp_received and otp_type
-        otp_qs = cls.objects.filter(
-            phone_number=phone_number, otp_sent=otp_received, otp_type=otp_type
-        )
-        # If any/some record exists
-        if otp_qs.exists():
-
-            # We will check for the is_latest, because we don't want old otp to be able to validate
-            otp_latest_qs = otp_qs.filter(is_latest=True)
-
-            # If any/some record exists
-            if otp_latest_qs.exists():
-                otp_latest = otp_latest_qs.first()
-
-                # Now we will see whether the latest otp has been used or not, if it is used
-                if otp_latest.is_used:
-                    is_validated = False
-                    message = "This OTP was already used"
-
-                # If the latest otp has not been used till yet
-                else:
-
-                    # If not used, lets check its expiration
-                    if otp_latest.is_expired():
-                        is_validated = False
-                        message = "This OTP has been expired, please generate a new one"
-
-                    # If not expired, then only we'll validate this otp
-                    else:
-                        otp_latest.is_used = True
-                        otp_latest.save(updated_fields=["is_used"])
-                        is_validated = True
-                        message = "OTP validated successfully"
-            else:
+        try:
+            latest_otp = cls.objects.get(
+                phone_number=phone_number,
+                otp_sent=otp_received,
+                otp_type=otp_type,
+                is_latest=True
+            )
+            # Now we will see whether the latest otp has been used or not, if it is used
+            if latest_otp.is_used:
                 is_validated = False
-                message = "Please enter recently generated OTP"
+                message = "This OTP was already used, please try to generate a new OTP"
 
-        else:
+            # If the latest otp has not been used till yet
+            else:
+
+                # If not used, lets check its expiration
+                if latest_otp.is_expired():
+                    is_validated = False
+                    message = "This OTP has been expired, please try to generate a new OTP"
+
+                # If not expired, then only we'll validate this otp
+                else:
+                    latest_otp.is_used = True
+                    latest_otp.save(update_fields=["is_used"])
+                    is_validated = True
+                    message = "OTP validated successfully"
+        except Otp.DoesNotExist as e:
             is_validated = False
-            message = "Please enter valid OTP"
-
-        return is_validated, message
+            message = "Please enter a valid OTP"
+        finally:
+            return is_validated, message
 
     def already_cool_down_passed(self):
         '''
@@ -175,6 +168,7 @@ class Otp(models.Model):
         else:
             return False
 
+
 ################################################## signals ##################################################
 
 
@@ -186,29 +180,40 @@ def increasing_attempts(sender, instance, *args, **kwargs):
     current otp object's attempt number
 
     """
-
     # We don't want it to be called while an Otp object updates
     if kwargs["update_fields"]:
         return
 
-    # Fetching latest otp having phone_number and otp_type same as the instance
+    # otp_qs = Otp.objects.filter(
+    #     phone_number=instance.phone_number,
+    #     otp_type=instance.otp_type,
+    #     is_latest=True
+    # )
+
+    # Fetching last/latest otp having phone_number and otp_type same as the instance.
+    # I could've filtered is_latest=True in the one go, but we're deleting all records from
+    # otp_qs excluding last otp, therefor I'm saving otp_qs for later purpose in this method.
     otp_qs = Otp.objects.filter(
-        phone_number=instance.phone_number, otp_type=instance.otp_type, is_latest=True
+        phone_number=instance.phone_number,
+        otp_type=instance.otp_type,
+
     )
-    latest_otp = otp_qs.first()
 
-    if latest_otp:
-        latest_otp.is_latest = False
-        latest_otp.save(update_fields=["is_latest"])
+    # Fetching last/latest otp from the query set
+    last_otp = otp_qs.filter(is_latest=True).first()
 
-        if latest_otp.is_used or latest_otp.already_cool_down_passed():
+    if last_otp:
+        last_otp.is_latest = False
+        last_otp.save(update_fields=["is_latest"])
+
+        if last_otp.is_used or last_otp.already_cool_down_passed():
             '''
-            If the latest otp was already used or enough time has passed then we'll assing the attempts of
+            If the last otp was already used or enough time has passed then we'll assing the attempts of
             new otp to be 1. 
             '''
             instance.attempts = 1
         else:
-            instance.attempts = latest_otp.attempts + 1
+            instance.attempts = last_otp.attempts + 1
             """
             It is really important to understand here, that:
             -> When the attempts are exactly equal to the settings.OTP_FAILURE_ATTEMPTS,
@@ -225,3 +230,9 @@ def increasing_attempts(sender, instance, *args, **kwargs):
                 instance.attempts = 1
     else:
         instance.attempts = 1
+
+    # Deleting all the records(excluding last) as these are of no use.
+    # Also they will pile up and result in slow query fetching eventually.
+    #
+    # If you want to keep all records, just comment the last line.
+    otp_qs.exclude(pk=last_otp.pk).delete()

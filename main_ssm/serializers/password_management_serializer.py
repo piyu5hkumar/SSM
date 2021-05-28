@@ -1,10 +1,11 @@
 # rest_framework imports
-from django.db.models import fields
 from rest_framework import serializers
 
+# django imports
+from django.conf import settings
+
 # additional imports
-from ..models import User
-from main_ssm import models
+from ..models import User, Otp
 
 
 class PasswordSerializer(serializers.ModelSerializer):
@@ -13,10 +14,12 @@ class PasswordSerializer(serializers.ModelSerializer):
         fields = ["password"]
 
 
-class ResetPasswordSerializer(serializers.Serializer):
+class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(min_length=8, max_length=255)
     new_password = serializers.CharField(min_length=8, max_length=225)
 
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=8, max_length=255)
 
 class ForgotPasswordSerializer(serializers.ModelSerializer):
     is_email = serializers.BooleanField()
@@ -35,10 +38,14 @@ class ForgotPasswordSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"email": "Please Enter an Email address"}
                 )
-                # ("not a valid email you shit!!!")
         else:
             if not data["phone_number"]:
                 raise serializers.ValidationError(
                     {"phone_number": "Please Enter a Phone number"}
                 )
         return data
+
+
+class ValidateOtpSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(min_length=10, max_length=10)
+    otp_received = serializers.CharField(min_length=settings.OTP_LENGTH, max_length=settings.OTP_LENGTH)

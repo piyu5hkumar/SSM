@@ -1,28 +1,40 @@
 # rest_framework imports
 from rest_framework.permissions import AllowAny
+from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 # django imports
 from django.contrib.auth.hashers import check_password
 from django.views import View
 from django.shortcuts import render
 from django.conf import settings
+from django.contrib.auth import login, logout
 
 # additional imports
-from ..components import SSMResponse, SendGrid, ForgotPasswordTokenGenerator
+from ..components import (
+    SSMResponse,
+    SendGrid,
+    ForgotPasswordTokenGenerator,
+    Twilio
+)
 from ..serializers import (
     PasswordSerializer,
+    ChangePasswordSerializer,
     ResetPasswordSerializer,
     ForgotPasswordSerializer,
+    ValidateOtpSerializer
 )
-from ..models import User
+from ..models import User, Otp
 from ..forms import ResetPasswordForm
 import jwt
 import time
 import datetime
 import os
+
+from main_ssm import serializers
 
 JWT_SIGNATURE = os.environ.get("JWT_SIGNATURE", "")
 
@@ -40,10 +52,10 @@ class CheckPassword(APIView):
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
 
-class ResetPassword(APIView):
+class ChangePassword(APIView):
     def post(self, request):
         resp = SSMResponse()
-        serializer = ResetPasswordSerializer(data=request.data)
+        serializer = ChangePasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         old_password = serializer.validated_data.get("old_password", "")
         if check_password(old_password, request.user.password):
@@ -56,13 +68,25 @@ class ResetPassword(APIView):
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
 
+class ResetPassword(APIView):
+    def post(self, request):
+        resp = SSMResponse()
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.password = serializer.validated_data.get('new_password', '')
+        request.user.save(update_fields=['password'])
+        resp.add_data_field(message='Password reset successful, please login to continue')
+        logout(request)
+        return Response(resp.get_response(), status=status.HTTP_200_OK)
+
+
 class ForgotPassword(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
         resp = SSMResponse()
 
-        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer = ForgotPasswordSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         is_email = serializer.validated_data.get("is_email", True)
 
@@ -101,17 +125,60 @@ class ForgotPassword(APIView):
             else:
                 resp.add_error_field(message="User doesn't exists")
         else:
-            pass
             phone_number = serializer.validated_data.get("phone_number", "")
             user_qs = User.objects.filter(phone_number=phone_number)
 
             if user_qs.exists():
-                user = user_qs.first()
-                user_uid = user.uid
+                twilio_object = Twilio()
+                resp.add_additional_info_field(twilio_use=twilio_object.TWILIO_USE)
+
+                is_success, message = twilio_object.send_otp(
+                    phone_number=phone_number,
+                    otp_type=Otp.OtpTypes.FORGOT_PASSWORD,
+                    length=settings.OTP_LENGTH
+                )
+
+                if is_success:
+                    resp.add_data_field(message=message)
+                else:
+                    resp.add_error_field(message=message)
             else:
                 resp.add_error_field(message="User doesn't exists")
 
         return Response(resp.get_response(), status=status.HTTP_200_OK)
+
+    def post(self, request):
+        resp = SSMResponse()
+
+        serializer = ValidateOtpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            Otp.objects.get(
+                otp_sent=serializer.validated_data['otp_received'],
+                otp_type=Otp.OtpTypes.FORGOT_PASSWORD
+            )
+            user = User.objects.get(phone_number=serializer.validated_data['phone_number'])
+
+            is_validated, message = Otp.validate_otp(
+                phone_number=serializer.validated_data['phone_number'],
+                otp_received=serializer.validated_data['otp_received'],
+                otp_type=Otp.OtpTypes.FORGOT_PASSWORD
+            )
+            if is_validated:
+                login(request, user)
+                user_token = Token.objects.get(user=user).key
+                resp.add_data_field(message=message)
+                resp.add_data_field(token=user_token)
+
+            else:
+                resp.add_error_field(message=message)
+        except Otp.DoesNotExist as e:
+            resp.add_error_field(message='Invalid OTP')
+        except User.DoesNotExist as e:
+            resp.add_error_field(message='User with this Phone Number doesn\'t exist')
+        finally:
+            return Response(resp.get_response(), status=status.HTTP_200_OK)
 
 
 class ForgotPasswordPage(View):

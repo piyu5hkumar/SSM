@@ -10,6 +10,7 @@ from ..views import (
     UserProfileInfo,
     LogoutUser,
     CheckPassword,
+    ChangePassword,
     ResetPassword,
     ForgotPassword,
     ForgotPasswordPage
@@ -24,6 +25,7 @@ urlpatterns = [
     path("user_profile", UserProfileInfo.as_view()),
     # password management
     path("check_password", CheckPassword.as_view()),
+    path("change_password", ChangePassword.as_view()),
     path("reset_password", ResetPassword.as_view()),
     path("forgot_password", ForgotPassword.as_view()),
     path("reset_password/<str:jwt_token>",ForgotPasswordPage.as_view() )

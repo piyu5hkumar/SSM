@@ -32,7 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
-    USERNAME_FIELD = "phone_number"
+    USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
@@ -47,7 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User,
-        related_name="user_profile",
+        related_name='user_profile',
         on_delete=models.CASCADE,
         primary_key=True,
     )
@@ -57,19 +57,19 @@ class UserProfile(models.Model):
         blank=True,
         validators=[MinLengthValidator(4)],
         max_length=30,
-        default="",
+        default='',
     )
 
     # null and blank are False by default
 
-    first_name = models.CharField(blank=True, max_length=20, default="")
-    middle_name = models.CharField(blank=True, max_length=20, default="")
-    last_name = models.CharField(blank=True, max_length=20, default="")
+    first_name = models.CharField(blank=True, max_length=20, default='')
+    middle_name = models.CharField(blank=True, max_length=20, default='')
+    last_name = models.CharField(blank=True, max_length=20, default='')
     d_o_b = models.DateField(null=True, blank=True, default=None)
 
     def __str__(self):
         name = self.username
-        name = self.ssmuser.phone_number if name == "" else name
+        name = self.user.phone_number if name == '' else name
         return name
 
 
@@ -78,8 +78,8 @@ class UserProfile(models.Model):
 
 @receiver(pre_save, sender=User)
 def hash_password(sender, instance, *args, **kwargs):
-    if kwargs["update_fields"]:
-        if "password" in kwargs["update_fields"]:
+    if kwargs['update_fields']:
+        if 'password' in kwargs['update_fields']:
             instance.set_password(instance.password)
     elif not instance.is_staff and not instance.is_superuser:
         instance.set_password(instance.password)
@@ -94,19 +94,19 @@ def create_token(sender, instance, created, *args, **kwargs):
 @transaction.atomic
 @receiver(user_logged_in)
 def on_user_logged_in(sender, request, **kwargs):
-    user_to_login = kwargs.get("user")
+    user_to_login = kwargs.get('user')
     Token.objects.filter(user=user_to_login).delete()
     Token.objects.create(user=user_to_login)
 
-    # it will automatically calls kwargs.get("user").save(update_fields=["last_login"])
+    # it will automatically calls kwargs.get('user').save(update_fields=['last_login'])
 
 
 @transaction.atomic
 @receiver(user_logged_out)
 def on_user_logged_out(sender, request, **kwargs):
-    user_to_logout = kwargs.get("user")
+    user_to_logout = kwargs.get('user')
     user_to_logout.last_logout = timezone.now()
-    user_to_logout.save(update_fields=["last_logout"])
+    user_to_logout.save(update_fields=['last_logout'])
     Token.objects.filter(user=user_to_logout).delete()
 
 

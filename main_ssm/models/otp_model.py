@@ -1,10 +1,13 @@
 
+# django imports
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from django.conf import settings
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+
+# additional imports
 import math
 import datetime
 
@@ -29,8 +32,8 @@ class Otp(models.Model):
         # Don't get confuse, RHS are nothing but tuples
         TWO_FACTOR = 'two_factor', 'Two Factor Authentication'
         PHONE_VERIFICATION = 'phone_verification', 'Phone Number Verification'
-        FORGOT_PASSWORD = "forgot_password", "Forgot Password"
-        PAYMENT = "payment", "Payment Authentication"
+        FORGOT_PASSWORD = 'forgot_password', 'Forgot Password'
+        PAYMENT = 'payment', 'Payment Authentication'
 
     phone_number = models.CharField(max_length=10, validators=[MinLengthValidator(10)])
 
@@ -71,7 +74,7 @@ class Otp(models.Model):
 
     @classmethod
     def is_applicable_for_otp(cls, phone_number, otp_type):
-        """
+        '''
 
         In this method we'll check the latest otp with the passed phone_number and otp_type,
         we will see whether it is blocked or not.
@@ -79,7 +82,7 @@ class Otp(models.Model):
         False and a string containing the amount of time left for cool down
         -> If it is not blocked then we'll simply return a tuple of True and a string(which is not applicable tbh)
 
-        """
+        '''
 
         is_applicable = None
         message = None
@@ -92,7 +95,7 @@ class Otp(models.Model):
 
             if is_blocked:
                 is_applicable = False
-                message = "Max OTP limit({}) has reached, please wait for {} minute(s) and {} second(s)".format(
+                message = 'Max OTP limit({}) has reached, please wait for {} minute(s) and {} second(s)'.format(
                     settings.OTP_FAILURE_ATTEMPTS,
                     cool_down_time.minute,
                     cool_down_time.second,
@@ -100,7 +103,7 @@ class Otp(models.Model):
                 return is_applicable, message
 
         is_applicable = True
-        message = "This user is applicable to send a new OTP"
+        message = 'This user is applicable to send a new OTP'
         return is_applicable, message
 
     def is_expired(self):
@@ -130,7 +133,7 @@ class Otp(models.Model):
             # Now we will see whether the latest otp has been used or not, if it is used
             if latest_otp.is_used:
                 is_validated = False
-                message = "This OTP was already used, please try to generate a new OTP"
+                message = 'This OTP was already used, please try to generate a new OTP'
 
             # If the latest otp has not been used till yet
             else:
@@ -138,17 +141,17 @@ class Otp(models.Model):
                 # If not used, lets check its expiration
                 if latest_otp.is_expired():
                     is_validated = False
-                    message = "This OTP has been expired, please try to generate a new OTP"
+                    message = 'This OTP has been expired, please try to generate a new OTP'
 
                 # If not expired, then only we'll validate this otp
                 else:
                     latest_otp.is_used = True
-                    latest_otp.save(update_fields=["is_used"])
+                    latest_otp.save(update_fields=['is_used'])
                     is_validated = True
-                    message = "OTP validated successfully"
+                    message = 'OTP validated successfully'
         except Otp.DoesNotExist as e:
             is_validated = False
-            message = "Please enter a valid OTP"
+            message = 'Please enter a valid OTP'
         finally:
             return is_validated, message
 
@@ -174,14 +177,14 @@ class Otp(models.Model):
 
 @receiver(pre_save, sender=Otp)
 def increasing_attempts(sender, instance, *args, **kwargs):
-    """
+    '''
 
     We will fetch the latest otp object having same otp type and phone number, by so we'll update the
     current otp object's attempt number
 
-    """
+    '''
     # We don't want it to be called while an Otp object updates
-    if kwargs["update_fields"]:
+    if kwargs['update_fields']:
         return
 
     # otp_qs = Otp.objects.filter(
@@ -204,7 +207,7 @@ def increasing_attempts(sender, instance, *args, **kwargs):
 
     if last_otp:
         last_otp.is_latest = False
-        last_otp.save(update_fields=["is_latest"])
+        last_otp.save(update_fields=['is_latest'])
 
         if last_otp.is_used or last_otp.already_cool_down_passed():
             '''
@@ -214,7 +217,7 @@ def increasing_attempts(sender, instance, *args, **kwargs):
             instance.attempts = 1
         else:
             instance.attempts = last_otp.attempts + 1
-            """
+            '''
             It is really important to understand here, that:
             -> When the attempts are exactly equal to the settings.OTP_FAILURE_ATTEMPTS,
             this means that this is the 3rd(in this case) consecutive otp of the same type and we have to date_block now, so that we don't receive any
@@ -223,7 +226,7 @@ def increasing_attempts(sender, instance, *args, **kwargs):
             this means that definitely we must have called the classmethod is_applicable_for_otp() before initializing the passed instance,
             that implies that during the 3rd(in this case) otp, definitely there would be a date_block, but now it must be cooled down that is why
             is_applicable_for_otp() passed and this instance is made. So, we have to again set the attempts to 1.
-            """
+            '''
             if instance.attempts == settings.OTP_FAILURE_ATTEMPTS:
                 instance.date_blocked = timezone.now()
             elif instance.attempts == settings.OTP_FAILURE_ATTEMPTS + 1:

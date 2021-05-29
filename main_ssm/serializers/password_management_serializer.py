@@ -11,37 +11,46 @@ from ..models import User, Otp
 class PasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["password"]
+        fields = ['password']
 
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(min_length=8, max_length=255)
     new_password = serializers.CharField(min_length=8, max_length=225)
 
+
 class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(min_length=8, max_length=255)
+
 
 class ForgotPasswordSerializer(serializers.ModelSerializer):
     is_email = serializers.BooleanField()
 
     class Meta:
         model = User
-        fields = ["is_email", "email", "phone_number"]
+        fields = ['is_email', 'email', 'phone_number']
         extra_kwargs = {
-            "phone_number": {"required": True, "allow_null": True, "validators": []},
-            "email": {"required": True, "validators": []},
+            'phone_number': {
+                'required': True,
+                'allow_null': True,
+                'validators': []
+            },
+            'email': {
+                'required': True,
+                'validators': []
+            },
         }
 
     def validate(self, data):
-        if data["is_email"]:
-            if not data["email"]:
+        if data['is_email']:
+            if not data['email']:
                 raise serializers.ValidationError(
-                    {"email": "Please Enter an Email address"}
+                    {'email': 'Please Enter an Email address'}
                 )
         else:
-            if not data["phone_number"]:
+            if not data['phone_number']:
                 raise serializers.ValidationError(
-                    {"phone_number": "Please Enter a Phone number"}
+                    {'phone_number': 'Please Enter a Phone number'}
                 )
         return data
 

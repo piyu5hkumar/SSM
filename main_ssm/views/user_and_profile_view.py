@@ -16,15 +16,6 @@ from ..serializers import UserSerializer, LonginUserSerializer, UserProfileSeria
 from ..components import SSMResponse
 
 
-class Test(APIView):
-    # permission_classes = [checkCustomPermission]
-    # authentication_classes = [LoginCheckPermission]
-
-    def get(self, request):
-        print(request.user.phone_number)
-        return Response({}, status=status.HTTP_200_OK)
-
-
 class SignUp(APIView):
     permission_classes = [AllowAny]
 
@@ -34,7 +25,7 @@ class SignUp(APIView):
         serializer.is_valid(raise_exception=True)
         singed_up_user = serializer.save()
         resp.add_data_field(
-            message=f"{singed_up_user.phone_number} has been successfully signed up"
+            message=f'{singed_up_user.phone_number} has been successfully signed up'
         )
         resp.add_data_field(token=singed_up_user.get_token().key)
 
@@ -54,22 +45,20 @@ class LoginUser(APIView):
             resp.add_additional_info_field(logged_out_user=str(request.user))
             logout(request)
 
-        phone_number = serializer.validated_data.get("phone_number", "")
-        password = serializer.validated_data.get("password", "")
+        phone_number = serializer.validated_data.get('phone_number', '')
+        password = serializer.validated_data.get('password', '')
 
-        user_qs = User.objects.filter(phone_number=phone_number)
-
-        if user_qs.exists():
-            user = user_qs.first()
+        try:
+            user = User.objects.get(phone_number=phone_number)
             if check_password(password, user.password):
                 login(request, user)
                 user_token = Token.objects.get(user=user).key
-                resp.add_data_field(message="User successfully logged in")
+                resp.add_data_field(message='User successfully logged in')
                 resp.add_data_field(token=user_token)
             else:
-                resp.add_error_field(message="Please enter correct Password")
-        else:
-            resp.add_error_field(message="User doesn't exists")
+                resp.add_error_field(message='Please enter correct Password')
+        except User.DoesNotExist:
+            resp.add_error_field(message='User doesn\'t exists')
 
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
@@ -78,11 +67,11 @@ class LogoutUser(APIView):
     def post(self, request):
         resp = SSMResponse()
         current_user = request.user
-        resp.add_data_field(message=f"{current_user} is successfully Logged out")
+        resp.add_data_field(message=f'{current_user} is successfully Logged out')
         try:
             logout(request)
         except:
-            resp.add_error_field(message=f"Unable to logout {current_user}")
+            resp.add_error_field(message=f'Unable to logout {current_user}')
 
         return Response(resp.get_response(), status=status.HTTP_200_OK)
 
@@ -93,9 +82,9 @@ class UserProfileInfo(APIView):
         current_user = request.user
         serializer = UserProfileSerializer(current_user.user_profile)
         user_profile = serializer.data
-        user_profile["phone_number"] = request.user.phone_number
+        user_profile['phone_number'] = request.user.phone_number
 
-        resp.add_data_field(message="UserProfile successfully fetched")
+        resp.add_data_field(message='UserProfile successfully fetched')
         resp.add_data_field(user_profile=user_profile)
 
         return Response(resp.get_response(), status=status.HTTP_200_OK)
@@ -106,8 +95,8 @@ class UserProfileInfo(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         user_profile_details = serializer.data
-        user_profile_details["phone_number"] = request.user.phone_number
+        user_profile_details['phone_number'] = request.user.phone_number
 
-        resp.add_data_field(message="Profile successfully updated")
+        resp.add_data_field(message='Profile successfully updated')
         resp.add_data_field(user_profile=user_profile_details)
         return Response(resp.get_response(), status=status.HTTP_200_OK)

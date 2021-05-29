@@ -33,9 +33,9 @@ class SSMResponse:
             self.error = None
 
         self.response = {
-            "data": self.data,
-            "error": self.error,
-            "additional_info": self.additional_info,
+            'data': self.data,
+            'error': self.error,
+            'additional_info': self.additional_info,
         }
 
         return self.response

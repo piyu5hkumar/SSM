@@ -23,7 +23,7 @@ APP_STORE_LINK = 'this_is_a_app_store_link.com'
 
 OTP_MESSAGE = '''Your OTP for {otp_type_label},
 is {otp_code}.
-Please sharing this to anyone else.
+Please prohibit sharing this message/OTP to anyone else.
 
 Thankyou.
 '''
@@ -87,7 +87,6 @@ class Twilio:
                     otp_sent=otp_code,
                     otp_type=otp_type
                 )
-
                 return True, f'Otp {otp_code}, has been sent to {phone_number}'
 
             except TwilioRestException as tre:

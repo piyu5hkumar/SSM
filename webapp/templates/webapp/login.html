@@ -1,0 +1,60 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+
+{% block stylesheets %}
+<style>
+
+    small {
+        font-size: 10px;
+    }
+</style>
+{% endblock stylesheets %}
+
+<div class="d-flex flex-column use-font">
+
+    <div class="d-flex justify-content-center ">
+        <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+
+            <div class="card-body ">
+                <h1 class="card-title">Login To SSM</h1>
+                <hr>
+                <form method="post" >
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {% if forloop.counter0 == 0 %}
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">+91</div>
+                            </div>
+                            {{ field }}
+                        </div>
+                        <small class="form-text text-muted d-flex justify-content-end">We'll never share your Phone
+                            Number with anyone else.</small>
+                        {% else %}
+                        {{field}}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    <div class="custom-control custom-checkbox my-1 mr-sm-2 d-flex justify-content-end">
+                        <input type="checkbox" class="custom-control-input" id="show_password" onclick="showPassword()">
+                        <label class="custom-control-label" for="show_password"><small
+                                class="form-text text-muted d-flex justify-content-end">Show
+                                Password</small></label>
+                    </div>
+
+                    <input type="submit" class="btn btn-outline-primary" value="Login Now" id="submit_btn">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'webapp/scripts/login_script.js' %}"></script>
+{% endblock scripts %}
+
+{% endblock %}

@@ -10,7 +10,10 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-  <title>{% block title %}{% endblock  %}</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
+  <title>{% block title %}{% endblock %}</title>
 </head>
 
 
@@ -26,56 +29,57 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
     integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
     crossorigin="anonymous"></script>
-  
-  {% comment  %} Following is our nav {% endcomment %}
 
-  <ul class="nav nav-tabs justify-content-between">
-    
+  <link rel="stylesheet" href="{% static 'layouts/css/base_style.css' %}">
+  <div class="base-container">
+    <ul class="nav nav-tabs justify-content-between use-font">
+
       <a class="navbar-brand" href=".">
-      <img src={% static 'webapp/chibi.png' %} width="30" height="30" class="d-inline-block align-top" alt="">
-      SSM
-    </a>
+        <img src="{% static 'layouts/images/chibi.png' %}" width="30" height="30" class="d-inline-block align-top"
+          alt="">
+        SSM
+      </a>
 
-    <li class="nav-item">
+      <li class="nav-item">
 
-      <ul class="nav nav-tabs justify-content-between">
+        <ul class="nav nav-tabs justify-content-between">
 
-        <li class="nav-item">
-          <a class="nav-link active" href="#">Active</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="#">Active</a>
+          </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
 
-        <li class="nav-item">
-          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">disabled</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">disabled</a>
+          </li>
 
-        <li class="nav-item">
-          <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
-            aria-expanded="false">Account</a>
-          <div class="dropdown-menu dropdown-menu-right">
-            <a class="dropdown-item" href="#">View Profile</a>
-            <a class="dropdown-item" href="#">Account Settings</a>
-            <a class="dropdown-item" href="#">Something else here</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Logout</a>
-          </div>
-        </li>
-      </ul>
-    </li>
-  </ul>
+          <li class="nav-item">
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+              aria-expanded="false">Account</a>
+            <div class="dropdown-menu dropdown-menu-right">
+              <a class="dropdown-item" href="#">View Profile</a>
+              <a class="dropdown-item" href="#">Account Settings</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Logout</a>
+            </div>
+          </li>
+        </ul>
+      </li>
+    </ul>
 
-  <div class="container">
-    {% block content %}
-    {% endblock  %}
+    <div class="content-body">
+      {% block content %}
+      {% endblock %}
+    </div>
   </div>
-  
 
 </body>
 

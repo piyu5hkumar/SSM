@@ -1,0 +1,54 @@
+
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+
+{% block stylesheets %}
+<style>
+    .jumbotron {
+        background-color: transparent;
+        color: black;
+    }
+
+    .display-4 {
+        font-size: 33vh;
+        padding-right: 50px;
+    }
+
+    .lead {
+        width: 50vw;
+    }
+
+    .hidden-buttons {
+        pointer-events: none;
+        opacity: 0;
+    }
+</style>
+{% endblock stylesheets %}
+
+<div class="jumbotron jumbotron-fluid use-font">
+    <div class="container d-flex justify-content-center">
+        <div class="display-4">SSM</div>
+        <div class="lead">
+            <u>
+                <h3 id="welcome"></h3>
+            </u>
+            <br>
+            <h4 id="welcome_message"></h4>
+            <h6 id="free"></h6>
+            <div class="hidden-buttons">
+                <a class="btn btn-outline-primary" href="{% url 'webapp_urls:login' %}">Login</a>
+                <a class="btn btn-outline-primary" href="{% url 'webapp_urls:signup' %}">Signup</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block scripts %}
+{% load static %}   
+<script src="{% static 'webapp/scripts/welcome_script.js' %}"></script>
+{% endblock scripts %}
+
+
+{% endblock %}

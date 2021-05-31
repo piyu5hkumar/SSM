@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
     <title>{% block title %}{% endblock %}</title>
 </head>
 
@@ -29,16 +32,18 @@
 
 
 
-    <link rel="stylesheet" href={% static 'base/css/style.css' %}>
+    <link rel="stylesheet" href="{% static 'layouts/css/base_style.css' %}">
     <div class="base-container">
-
-        <nav class=" navbar navbar-dark bg-dark">
-            <a class="navbar-brand" href="#">
-                <img src={% static 'base/images/chibi.png' %} width="30" height="30" class="d-inline-block align-top"
-                    alt="">
+        {% url 'webapp:home' as home %}
+        {% if request.path is not home %}
+        <nav class=" navbar navbar-dark bg-dark d-flex justify-content-center use-font">
+            <a class="navbar-brand " href="{% url 'webapp:home' %}">
+                <img src="{% static 'layouts/images/chibi.png' %}" width="30" height="30"
+                    class="d-inline-block align-top" alt="">
                 <b>SSM</b>
             </a>
         </nav>
+        {% endif %}
 
         <div class="d-flex content-body  align-items-center justify-content-center ">
 

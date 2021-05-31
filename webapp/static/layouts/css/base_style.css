@@ -16,4 +16,8 @@ body {
     background-color: lightblue;
     flex: 1;
 }
+.use-font{
+	font-family: 'Pacifico', cursive;
+}
+
 

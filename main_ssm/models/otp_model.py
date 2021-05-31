@@ -199,13 +199,11 @@ def increasing_attempts(sender, instance, *args, **kwargs):
     otp_qs = Otp.objects.filter(
         phone_number=instance.phone_number,
         otp_type=instance.otp_type,
-
     )
 
-    # Fetching last/latest otp from the query set
-    last_otp = otp_qs.filter(is_latest=True).first()
-
-    if last_otp:
+    if otp_qs.exists():
+        # Fetching last/latest otp from the query set
+        last_otp = otp_qs.get(is_latest=True)
         last_otp.is_latest = False
         last_otp.save(update_fields=['is_latest'])
 
@@ -231,11 +229,14 @@ def increasing_attempts(sender, instance, *args, **kwargs):
                 instance.date_blocked = timezone.now()
             elif instance.attempts == settings.OTP_FAILURE_ATTEMPTS + 1:
                 instance.attempts = 1
-    else:
-        instance.attempts = 1
 
-    # Deleting all the records(excluding last) as these are of no use.
-    # Also they will pile up and result in slow query fetching eventually.
-    #
-    # If you want to keep all records, just comment the last line.
-    otp_qs.exclude(pk=last_otp.pk).delete()
+        # Deleting all the records(excluding last) as these are of no use.
+        # Also they will pile up and result in slow query fetching eventually.
+        #
+        # If you want to keep all records, just comment the last line.
+        otp_qs.exclude(pk=last_otp.pk).delete()
+
+    else:
+        # If this is due to case 1: It means there is no record of the current phone_number and otp_type,
+        # so just make this current otp attempt be 1
+        instance.attempts = 1

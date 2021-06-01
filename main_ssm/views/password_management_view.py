@@ -218,14 +218,24 @@ class ForgotPasswordPage(View):
     def get(self, request, jwt_token=None):
         valid, _, _ = self.is_token_valid(jwt_token)
         if not valid:
-            return render(request, 'main_ssm/invalid_page.html')
+            error = {
+                'error': '400 Bad Request ;(',
+                'error_detail': 'The server can not or will not process the request due to an apparent client error.',
+                'additional_info': 'The request you sent to the website server, was somehow incorrect or corrupted and the server couldn\'t understand it.',
+            }
+            return render(request, 'layouts/error_page.html', {'error': error})
 
         return render(request, 'main_ssm/reset_password.html', {'form': self.form})
 
     def post(self, request, jwt_token=None):
         valid, user, password_reset_token = self.is_token_valid(jwt_token)
         if not valid:
-            return render(request, 'main_ssm/invalid_page.html')
+            error = {
+                'error': '400 Bad Request ;(',
+                'error_detail': 'The server can not or will not process the request due to an apparent client error.',
+                'additional_info': 'The request you sent to the website server, was somehow incorrect or corrupted and the server couldn\'t understand it.'
+            }
+            return render(request, 'layouts/error_page.html', {'error': error})
 
         new_password = request.POST.get('new_password', '')
         confirm_new_password = request.POST.get('confirm_new_password', '')

@@ -34,10 +34,10 @@
 
     <link rel="stylesheet" href="{% static 'layouts/css/base_style.css' %}">
     <div class="base-container">
-        {% url 'webapp:home' as home %}
-        {% if request.path is not home %}
+        {% url 'webapp:welcome' as welcome %}
+        {% if request.path is not welcome %}
         <nav class=" navbar navbar-dark bg-dark d-flex justify-content-center use-font">
-            <a class="navbar-brand " href="{% url 'webapp:home' %}">
+            <a class="navbar-brand " href="{% url 'webapp:welcome' %}">
                 <img src="{% static 'layouts/images/chibi.png' %}" width="30" height="30"
                     class="d-inline-block align-top" alt="">
                 <b>SSM</b>

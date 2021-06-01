@@ -19,24 +19,28 @@
         color: rgb(255, 146, 146);
         font-weight: bold;
     }
-    .btn:hover{
+
+    .btn:hover {
         background-color: red;
         border-color: whitesmoke;
         color: whitesmoke;
-        
+
     }
 </style>
 {% endblock stylesheets %}
 
 <div class="jumbotron jumbotron-fluid">
     <div class="container">
-        <h1 class="display-4">400 Bad Request ;(</h1>
-        <p class="lead">The server can not or will not process the request due to an apparent client error</p>
+        <h1 class="display-4">{{ error.error }}</h1>
+        <p class="lead">{{ error.error_detail }}</p>
         <hr class="my-4">
-        <p>The request you sent to the website server, was somehow
-            incorrect or corrupted and the server couldn't understand it.</p>
+        <p>{{ error.additional_info }}</p>
         <p class="lead">
             <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Back to Home</a>
+            {% if error.go_to_login %}
+            OR
+            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Login</a>
+            {% endif %}
         </p>
     </div>
 </div>

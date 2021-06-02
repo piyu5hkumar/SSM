@@ -8,7 +8,6 @@
     }
 </style>
 {% endblock stylesheets %}
-
 <div class="d-flex flex-column use-font">
     <div class="d-flex justify-content-center ">
         <div class="card shadow-lg p-3 mb-5 bg-white rounded">
@@ -32,6 +31,11 @@
                         </div>
                         <small class="form-text text-muted d-flex justify-content-end">We'll never share your Phone
                             Number with anyone else.</small>
+
+                        {% if error.integrity_error %}
+                        <p class="error-detail d-flex justify-content-end">{{error.error_detail}}</p>
+                        {% endif %}
+
                         {% else %}
                         {{field}}
                         {% if forloop.counter0 is 1 %}
@@ -51,33 +55,32 @@
 
                 </form>
 
-                <div class="modal fade" id="ModalCenter" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
-                    aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h2 class="modal-title" id="exampleModalLongTitle">Please Enter Valid Details</h2>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                Password and Confirm Password must be same.
-                            </div>
-                            <div class="modal-footer">
-                                <small>Press any key to close this, or </small>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
             </div>
         </div>
     </div>
 </div>
 
+
+<div class="modal fade" id="ModalCenter" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="exampleModalLongTitle">Please Enter Valid Details</h2>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Password and Confirm Password must be same.
+            </div>
+            <div class="modal-footer">
+                <small>Press any key to close this, or </small>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% block scripts %}
 {% load static %}

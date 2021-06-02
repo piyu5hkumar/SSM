@@ -1,1 +1,1 @@
-from .views import *
+from .welcome_page_view import *

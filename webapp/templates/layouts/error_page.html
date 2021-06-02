@@ -29,7 +29,7 @@
 </style>
 {% endblock stylesheets %}
 
-<div class="jumbotron jumbotron-fluid">
+<div class="jumbotron jumbotron-fluid use-font">
     <div class="container">
         <h1 class="display-4">{{ error.error }}</h1>
         <p class="lead">{{ error.error_detail }}</p>
@@ -39,7 +39,7 @@
             <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Back to Home</a>
             {% if error.go_to_login %}
             OR
-            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Login</a>
+            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:login' %}" role="button">Login</a>
             {% endif %}
         </p>
     </div>

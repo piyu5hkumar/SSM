@@ -6,7 +6,7 @@ from django.views import View
 from main_ssm.models import User
 from django.db import IntegrityError
 
-LOGIN_TEMPLATE = 'webapp/login.html'
+LOGIN_TEMPLATE = 'webapp/welcome_page/login.html'
 
 
 class Welcome(View):
@@ -17,7 +17,7 @@ class Welcome(View):
         # if is_authenticated:
         #     return redirect('webapp_urls:home')
         # else:
-        return render(request, 'webapp/welcome.html')
+        return render(request, 'webapp/welcome_page/welcome.html')
 
 
 class Login(View):
@@ -25,7 +25,7 @@ class Login(View):
     @verify_authentication_welcome_page
     def get(self, request):
         form = LoginForm()
-        return render(request, 'webapp/login.html', {'form': form})
+        return render(request, 'webapp/welcome_page/login.html', {'form': form})
 
     @verify_authentication_welcome_page
     def post(self, request):
@@ -37,14 +37,14 @@ class Login(View):
             if is_authenticated:
                 return redirect('webapp_urls:home')
 
-        return render(request, 'webapp/login.html')
+        return render(request, 'webapp/welcome_page/login.html')
 
 
 class SignUp(View):
     @verify_authentication_welcome_page
     def get(self, request):
         form = SignUpForm()
-        return render(request, 'webapp/signup.html', {'form': form})
+        return render(request, 'webapp/welcome_page/signup.html', {'form': form})
 
     @verify_authentication_welcome_page
     def post(self, request):
@@ -54,14 +54,21 @@ class SignUp(View):
             password = form.cleaned_data['password']
             try:
                 User.objects.create(phone_number=phone_number, password=password)
-                return render(request, 'webapp/signup_successful')
+                return render(request, 'webapp/welcome_page/signup_successful.html')
             except IntegrityError:
-                error = {
-                    'error': '500 Internal server error ;(',
-                    'error_detail': 'The server encountered an unexpected condition that prevented it from fulfilling the request.',
-                    'additional_info': 'Please try after sometime, we\'ll look into this matter.',
-                    'go_to_login': True
+                context = {
+                    'form': form,
+                    'error': {
+                        'integrity_error': True,
+                        'error_detail': 'This User already exists'
+                    }
                 }
-                return render(request, 'layouts/error_page.html', {'error': error})
-
-        return render(request, 'webapp/signup.html', {'form': form})
+                return render(request, 'webapp/welcome_page/signup.html', context)
+        context = {
+            'form': SignUpForm(),
+            'error': {
+                'validation_error': True,
+                'error_detail': ''
+            }
+        }
+        return render(request, 'webapp/welcome_page/signup.html', context)

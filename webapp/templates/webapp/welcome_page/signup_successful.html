@@ -5,7 +5,7 @@
 {% block stylesheets %}
 <style>
     .content-body {
-        background-color: rgb(255, 255, 146);
+        background-color: rgb(224, 255, 224);
     }
 
     .jumbotron {
@@ -15,13 +15,13 @@
 
     .btn {
         background-color: whitesmoke;
-        border-color: rgb(110, 110, 0);
-        color: rgb(110, 110, 0);
+        border-color: green;
+        color: green;
         font-weight: bold;
     }
 
     .btn:hover {
-        background-color: rgb(110, 110, 0);
+        background-color: green;
         border-color: whitesmoke;
         color: whitesmoke;
 
@@ -31,12 +31,10 @@
 
 <div class="jumbotron jumbotron-fluid use-font">
     <div class="container">
-        <h1 class="display-4">Password reset Unsuccessful</h1>
-        <p class="lead">The server was unable to reset your password.</p>
-        <hr class="my-4">
-        <p>Please generate a new link to reset your password.</p>
+        <h1 class="display-4">You're Successfully Signed Up :)</h1>
+        <p>Please Login to Continue.</p>
         <p class="lead">
-            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:home' %}" role="button">Back to Home</a>
+            <a class="btn btn-primary btn-lg" href="{% url 'webapp_urls:login' %}" role="button">Login</a>
         </p>
     </div>
 </div>

@@ -1,16 +1,10 @@
 # django imports
 from django.urls import path
-from .views import Welcome, Login, SignUp, Profile
+from .views import Welcome, Login, SignUp, Profile, Logout
 from django.views.generic import TemplateView
 
 from django.views import View
 from django.shortcuts import HttpResponse
-
-class Logout(View):
-    def get(self, request):
-        request.session.flush()
-        del request.user
-        return HttpResponse('BYE')
 
 urlpatterns = [
     path('', Welcome.as_view(), name='welcome'),

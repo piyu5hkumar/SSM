@@ -34,7 +34,7 @@ function doOnLoad() {
         case "--": break;
         case "--": break;
         case "--": break;
-        case "user":
+        case "profile":
             activateElement(nav_links[4])
             break;
         default:

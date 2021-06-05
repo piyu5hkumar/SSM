@@ -22,7 +22,7 @@ class Profile(View):
                 'last_name': user_profile.last_name,
                 'd_o_b': user_profile.d_o_b,
             },
-            'selected_nav_link':'user'
+            'selected_nav_link': 'profile'
         }
         x = str(datetime.strptime(str(user_profile.d_o_b), "%Y-%m-%d").date())
         return render(request, 'webapp/logged_in/profile.html', context)
@@ -48,6 +48,12 @@ class Profile(View):
                 'last_name': user_profile.last_name,
                 'd_o_b': user_profile.d_o_b
             },
-            'selected_nav_link':'user'
+            'selected_nav_link': 'profile'
         }
         return render(request, 'webapp/logged_in/profile.html', context)
+
+
+class Logout(View):
+    def get(self, request):
+        request.session.flush()
+        return redirect('webapp_urls:welcome')

@@ -9,10 +9,10 @@ def user_authentication(request, phone_number, password):
         if check_password(password, user.password):
             user_profile = user.user_profile
             request.session['display_name'] = str(user_profile)
-            request.session['first_name'] = user_profile.first_name
-            request.session['middle_name'] = user_profile.middle_name
-            request.session['last_name'] = user_profile.last_name
+            request.session['uid'] = str(user.uid)
             request.session['is_authenticated'] = True
+            request.session.user = user
+            print(request.session.user)
             return True, 'User credentials were valid', user
         else:
             return False, 'user credentials were not valid', None

@@ -1,0 +1,98 @@
+{% extends 'layouts/base_logged_in.html' %}
+{% block content %}
+
+{% block stylesheets %}
+<style>
+    .card-body {
+        width: 50vw;
+    }
+
+    .field-info {
+        height: 10vh;
+        /* background-color: greenyellow; */
+    }
+
+    .field-label {
+        font-size: 150%;
+        width: 50%;
+        color: rgb(99, 99, 99);
+        /* background-color: magenta; */
+        /* font-weight: bold; */
+        /* border-color: brown; */
+    }
+
+    .user-val {
+        font-size: 150%;
+        width: 50%;
+        /* background-color: green; */
+        /* border-color: brown; */
+    }
+
+    .field-input {
+        display: none;
+    }
+
+    .buttons > *{
+        margin: 10px;
+    }
+
+    #save_btn, #cancel_btn{
+        display: none;
+    }
+    
+</style>
+{% endblock stylesheets %}
+
+
+<div class="d-flex flex-column use-font">
+
+    <div class="d-flex justify-content-center ">
+        <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+
+            <div class="card-body ">
+                <h1 class="card-title">My details</h1>
+                <hr>
+                <form id="user-details" method="POST">
+                    {% csrf_token %}
+
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.first_name.label}}</div>
+                        <div class="user-val">{{user.first_name}}</div>
+                        {{form.first_name}}
+                    </div>
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.middle_name.label}}</div>
+                        <div class="user-val">{{user.middle_name}}</div>
+                        {{form.middle_name}}
+
+                    </div>
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.last_name.label}}</div>
+                        <div class="user-val">{{user.last_name}}</div>
+                        {{form.last_name}}
+
+                    </div>
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.d_o_b.label}}</div>
+                        <div class="user-val">{{user.d_o_b|date:"d M Y"}}</div>
+                        <div id="formatted-date" style="display: none;">{{user.d_o_b|date:"Y-m-d"}}</div>
+                        {{form.d_o_b}}
+                    </div>
+                </form>
+
+                <div class="d-flex justify-content-center buttons">
+                    <button class="btn btn-outline-primary" id="edit_btn" onclick="EnableEdit()">Edit Details</button>
+                    <button class="btn btn-outline-success" id="save_btn" onclick="SaveEdits()">Save</button>
+                    <button class="btn btn-outline-danger" id="cancel_btn" onclick="CancelEdits()">cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% block scripts %}
+{% load static %}
+<script src="{% static 'webapp/scripts/profile.js' %}"></script>
+{% endblock scripts %}
+
+{% endblock content %}

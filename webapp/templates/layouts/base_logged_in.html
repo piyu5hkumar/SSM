@@ -17,7 +17,8 @@
 </head>
 
 
-<body>
+<body onload="doOnLoad()">
+
   <!-- Optional JavaScript -->
   <!-- jQuery first, then Popper.js, then Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
@@ -31,10 +32,11 @@
     crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="{% static 'layouts/css/base_style.css' %}">
+  <!-- <script src="{% static 'layouts/scripts/base_script.js' %}"></script> -->
 
-  
+
   <div class="base-container">
-    <ul class="nav nav-tabs justify-content-between use-font">
+    <ul class="nav nav-pills justify-content-between use-font">
 
       <a class="navbar-brand" href=".">
         <img src="{% static 'layouts/images/chibi.png' %}" width="30" height="30" class="d-inline-block align-top"
@@ -44,45 +46,58 @@
 
       <li class="nav-item">
 
+        <div id="selected-nav-link" style="display: none;">{{selected_nav_link}}</div>
+
         <ul class="nav nav-tabs justify-content-between">
 
           <li class="nav-item">
-            <a class="nav-link active" href="#">Active</a>
+            <a class="nav-link a" href="#" onmouseover="hoveredNavLink(this)"
+              onmouseout="notHoveredNavLink(this)">Active</a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
+            <a class="nav-link b" href="#" onmouseover="hoveredNavLink(this)"
+              onmouseout="notHoveredNavLink(this)">Link</a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
+            <a class="nav-link c" href="#" onmouseover="hoveredNavLink(this)"
+              onmouseout="notHoveredNavLink(this)">Link</a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">disabled</a>
+            <a class="nav-link disabled d" href="#" tabindex="-1" aria-disabled="true"
+              onmouseover="hoveredNavLink(this)" onmouseout="notHoveredNavLink(this)">disabled</a>
           </li>
 
+
           <li class="nav-item">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
-              aria-expanded="false">Account</a>
+            <a class="nav-link dropdown-toggle e" data-toggle="dropdown" href="#" role="button" aria-haspopup="true"
+              aria-expanded="false" onmouseover="hoveredNavLink(this)" onmouseout="notHoveredNavLink(this)">
+              {{request.session.display_name}}</a>
             <div class="dropdown-menu dropdown-menu-right">
-              <a class="dropdown-item" href="#">View Profile</a>
+              <a class="dropdown-item" href="{% url 'webapp_urls:profile' %}">View Profile</a>
               <a class="dropdown-item" href="#">Account Settings</a>
               <a class="dropdown-item" href="#">Something else here</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="#">Logout</a>
             </div>
           </li>
+
         </ul>
+
       </li>
     </ul>
 
-    <div class="content-body">
+    <div class="d-flex content-body  align-items-center justify-content-center ">
       {% block content %}
       {% endblock %}
     </div>
   </div>
 
+  {% block scripts_base_logged_in %}
+  <script src="{% static 'layouts/scripts/base_script.js' %}"></script>
+  {% endblock %}
 </body>
 
 </html>

@@ -2,7 +2,7 @@ from django.views import View
 from django.shortcuts import render, HttpResponse, redirect
 from ...authentication import verify_authentication
 from django.views.generic import FormView
-from ...forms import ProfileForm
+from ...forms import ProfileForm, AccountForm
 from main_ssm.models import User, UserProfile
 from datetime import datetime
 
@@ -51,6 +51,48 @@ class Profile(View):
             'selected_nav_link': 'profile'
         }
         return render(request, 'webapp/logged_in/profile.html', context)
+
+
+class Account(View):
+
+    @verify_authentication
+    def get(self, request):
+        user = User.objects.get(uid=request.session['uid'])
+        user_profile = user.user_profile
+
+        context = {
+            'form': AccountForm(),
+            'user': {
+                'username': user_profile.username,
+                'email': user.email,
+            },
+            'selected_nav_link': 'profile'
+        }
+        x = str(datetime.strptime(str(user_profile.d_o_b), "%Y-%m-%d").date())
+        return render(request, 'webapp/logged_in/account.html', context)
+
+    def post(self, request):
+        form = AccountForm(request.POST)
+        user = User.objects.get(uid=request.session['uid'])
+        user_profile = user.user_profile
+
+        if form.is_valid():
+            user_profile.username = form.cleaned_data['username']
+            user.email = form.cleaned_data['email']
+            user_profile.save(update_fields=['username'])
+            user.save(update_fields=['email'])
+        else:
+            print(form.errors)
+        context = {
+            'form': AccountForm(),
+            'user': {
+                'username': user_profile.username,
+                'email': user.email,
+            },
+            'selected_nav_link': 'profile'
+        }
+        return render(request, 'webapp/logged_in/account.html', context)
+
 
 
 class Logout(View):

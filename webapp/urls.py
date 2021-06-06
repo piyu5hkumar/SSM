@@ -1,6 +1,13 @@
 # django imports
 from django.urls import path
-from .views import Welcome, Login, SignUp, Profile, Logout
+from .views import (
+    Welcome,
+    Login,
+    SignUp,
+    Profile,
+    Account,
+    Logout
+)
 from django.views.generic import TemplateView
 
 from django.views import View
@@ -15,6 +22,7 @@ urlpatterns = [
 
     # After you are logged in
     path('profile', Profile.as_view(), name='profile'),
+    path('account', Account.as_view(), name='account'),
     path('logout', Logout.as_view(), name='logout')
 ]
 

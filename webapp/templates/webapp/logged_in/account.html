@@ -1,0 +1,135 @@
+{% extends 'layouts/base_logged_in.html' %}
+{% block content %}
+
+{% block stylesheets %}
+<style>
+    .card-body {
+        width: 50vw;
+    }
+
+    .field-info {
+        height: 10vh;
+    }
+
+    .field-label {
+        font-size: 150%;
+        width: 50%;
+        color: rgb(99, 99, 99);
+    }
+
+    .user-val {
+        font-size: 150%;
+        width: 50%;
+    }
+
+    .account-field-input {
+        display: none;
+    }
+
+    .field-show {
+        display: block;
+    }
+
+    .buttons>* {
+        margin: 10px;
+    }
+
+    #save_btn_account,
+    #cancel_btn_account,
+    #save_btn_privacy,
+    #cancel_btn_privacy {
+        display: none;
+    }
+</style>
+{% endblock stylesheets %}
+
+
+<div class="d-flex flex-column use-font">
+
+    <div class="d-flex justify-content-center ">
+        <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+
+            <div class="card-body ">
+                <h1 class="card-title">Account details</h1>
+                <hr>
+                <form id="Account-details" method="POST">
+                    {% csrf_token %}
+
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.username.label}}</div>
+                        <div class="user-val">{{user.username}}</div>
+                        {{form.username}}
+                    </div>
+                    <div class="field-info d-flex justify-content-center">
+                        <div class="field-label">{{form.email.label}}</div>
+                        <div class="user-val">{{user.email}}</div>
+                        {{form.email}}
+                    </div>
+
+
+
+                </form>
+                <div class="d-flex justify-content-center buttons">
+                    <button class="btn btn-outline-primary" id="edit_btn_account" onclick="EnableEditAccount()">Edit Details</button>
+                    <button class="btn btn-outline-success" id="save_btn_account" onclick="SaveEditsAccount()">Save</button>
+                    <button class="btn btn-outline-danger" id="cancel_btn_account" onclick="CancelEditsAccount()">cancel</button>
+                </div>
+
+                <h5 class="mb-0">
+                    <button class="btn btn-link " data-toggle="collapse" data-target="#password_fields">
+                        Privacy
+                    </button>
+                </h5>
+
+                <div id="accordion">
+
+
+                    <div id="password_fields" class="collapse" data-parent="#accordion">
+                        <form id="privacy-details" method="POST">
+
+                            <div class="field-info d-flex justify-content-center">
+                                <div class="field-label">{{form.old_password.label}}</div>
+                                {{form.old_password}}
+                            </div>
+
+                            <div class="field-info d-flex justify-content-center">
+                                <div class="field-label">{{form.new_password.label}}</div>
+                                {{form.new_password}}
+                            </div>
+
+                            <div class="field-info d-flex justify-content-center">
+                                <div class="field-label">{{form.confirm_password.label}}</div>
+                                {{form.confirm_password}}
+                            </div>
+
+                        </form>
+
+                        <div class="d-flex justify-content-center buttons">
+                            <button class="btn btn-outline-primary" id="edit_btn_privacy" onclick="EnableEditPrivacy()">Edit Password</button>
+                            <button class="btn btn-outline-success" id="save_btn_privacy" onclick="SaveEditsPrivacy()">Save</button>
+                            <button class="btn btn-outline-danger" id="cancel_btn_privacy"
+                                onclick="CancelEditsPrivacy()">cancel</button>
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+{% block scripts %}
+{% load static %}
+<script src="{% static 'webapp/scripts/account.js' %}"></script>
+{% endblock scripts %}
+
+{% endblock content %}

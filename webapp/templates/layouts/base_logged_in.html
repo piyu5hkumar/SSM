@@ -77,7 +77,7 @@
               {{request.session.display_name}}</a>
             <div class="dropdown-menu dropdown-menu-right">
               <a class="dropdown-item" href="{% url 'webapp_urls:profile' %}">View Profile</a>
-              <a class="dropdown-item" href="#">Account Settings</a>
+              <a class="dropdown-item" href="{% url 'webapp_urls:account' %}">Account Settings</a>
               <a class="dropdown-item" href="#">Something else here</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="{% url 'webapp_urls:logout' %}">Logout</a>

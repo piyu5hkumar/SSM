@@ -27,5 +27,5 @@ urlpatterns = [
     path('change_password', ChangePassword.as_view()),
     path('reset_password', ResetPassword.as_view()),
     path('forgot_password', ForgotPassword.as_view()),
-    path('reset_password/<str:jwt_token>', ForgotPasswordPage.as_view())
+    path('reset_password/<uuid:uid>/<str:password_reset_token>', ForgotPasswordPage.as_view())
 ]

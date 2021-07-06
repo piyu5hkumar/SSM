@@ -95,18 +95,11 @@ class ForgotPassword(APIView):
                 base_url = 'http://127.0.0.1:8000/api/reset_password'
 
                 user = User.objects.get(email=email)  # Raises User.DoesNotExist on unsuccess
-                user_uid = str(user.uid)
 
                 reset_token_generator_object = ForgotPasswordTokenGenerator()
                 password_reset_token = reset_token_generator_object.make_token(user)
 
-                payload = {
-                    'uid': user_uid,
-                    'password_reset_token': password_reset_token,
-                    'timestamp': time.time(),
-                }
-                jwt_token = jwt.encode(payload, JWT_SIGNATURE)
-                forgot_password_url = f'{base_url}/{jwt_token}'
+                forgot_password_url = f'{base_url}/{user.uid}/{password_reset_token}'
 
                 sendgrid_obj = SendGrid()
                 is_success, sendgrid_response = sendgrid_obj.send_email(
@@ -118,6 +111,7 @@ class ForgotPassword(APIView):
                         message='Forgot password link successfully sent'
                     )
                     resp.add_additional_info_field(sendgrid_response=sendgrid_response)
+                    resp.add_data_field(url=forgot_password_url)
                 else:
                     resp.add_error_field(message='Unable to send message')
                     resp.add_additional_info_field(sendgrid_response=sendgrid_response)
@@ -183,30 +177,10 @@ class ForgotPassword(APIView):
 class ForgotPasswordPage(View):
     form = ResetPasswordForm()
 
-    def is_token_valid(self, jwt_token):
+    def is_token_valid(self, uid, password_reset_token):
 
         try:
-            # This will also raise an exception on unsuccessful decode
-            decoded_token = jwt.decode(jwt_token, JWT_SIGNATURE, algorithms=['HS256'])
-
-            # checking expiration of the jwt_token
-            timestamp = decoded_token['timestamp']
-            timestamp_difference = time.time() - float(timestamp)
-
-            timestamp_delta_limit = datetime.timedelta(
-                hours=settings.JWT_TOKEN_EXPIRE_HOURS
-            )
-            timestamp_delta = datetime.timedelta(seconds=timestamp_difference)
-            if timestamp_delta > timestamp_delta_limit:
-                raise Exception(f'Token expired')
-
-            # checking user exists with the provided uid or not
-            # get automatically raises an exception when nothing is found
-            uid = decoded_token['uid']
-            user = User.objects.get(uid=uid)
-
-            # checking password_reset_token
-            password_reset_token = decoded_token['password_reset_token']
+            user = User.objects.get(pk=uid)
             reset_token_generator_object = ForgotPasswordTokenGenerator()
             if not reset_token_generator_object.check_token(user, password_reset_token):
                 raise Exception('Invalid token')
@@ -215,8 +189,8 @@ class ForgotPasswordPage(View):
 
         return True, user, password_reset_token
 
-    def get(self, request, jwt_token=None):
-        valid, _, _ = self.is_token_valid(jwt_token)
+    def get(self, request, uid, password_reset_token=None):
+        valid, _, _ = self.is_token_valid(uid, password_reset_token)
         if not valid:
             error = {
                 'error': '400 Bad Request ;(',
@@ -227,8 +201,8 @@ class ForgotPasswordPage(View):
 
         return render(request, 'main_ssm/reset_password.html', {'form': self.form})
 
-    def post(self, request, jwt_token=None):
-        valid, user, password_reset_token = self.is_token_valid(jwt_token)
+    def post(self, request, uid, password_reset_token=None):
+        valid, user, password_reset_token = self.is_token_valid(uid, password_reset_token)
         if not valid:
             error = {
                 'error': '400 Bad Request ;(',

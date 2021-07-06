@@ -2,7 +2,7 @@ from django.views import View
 from django.shortcuts import render, HttpResponse, redirect
 from ...authentication import verify_authentication
 from django.views.generic import FormView
-from ...forms import ProfileForm, AccountForm
+from ...forms import ProfileForm, AccountForm, PrivacyForm
 from main_ssm.models import User, UserProfile
 from datetime import datetime
 
@@ -61,7 +61,8 @@ class Account(View):
         user_profile = user.user_profile
 
         context = {
-            'form': AccountForm(),
+            'account_form': AccountForm(),
+            'privacy_form': PrivacyForm(),
             'user': {
                 'username': user_profile.username,
                 'email': user.email,
@@ -85,6 +86,7 @@ class Account(View):
             print(form.errors)
         context = {
             'form': AccountForm(),
+            'privacy_form': PrivacyForm(),
             'user': {
                 'username': user_profile.username,
                 'email': user.email,

@@ -22,6 +22,8 @@ class AccountForm(forms.Form):
         )
     )
 
+
+class PrivacyForm(forms.Form):
     old_password = forms.CharField(
         widget=forms.PasswordInput(
             attrs={
